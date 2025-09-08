@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -45,8 +46,19 @@ func (r *PostRepository) GetPostsByUserID(userID int) ([]*Post, error) {
 }
 
 func (r *PostRepository) GetPostsByUserIDs(userIDs []int) ([]*Post, error) {
-	query := "SELECT id, user_id, title, content, created_at, updated_at FROM posts WHERE user_id IN (?)"
-	rows, err := r.db.Query(query, userIDs)
+	if len(userIDs) == 0 {
+		return []*Post{}, nil
+	}
+
+	placeholders := strings.Repeat("?,", len(userIDs)-1) + "?"
+	query := fmt.Sprintf("SELECT id, user_id, title, content, created_at, updated_at FROM posts WHERE user_id IN (%s)", placeholders)
+	
+	args := make([]any, len(userIDs))
+	for i, id := range userIDs {
+		args[i] = id
+	}
+	
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query posts: %w", err)
 	}

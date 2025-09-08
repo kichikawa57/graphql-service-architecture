@@ -1,76 +1,78 @@
-# GraphQL Service
+# GraphQL Service Architecture
 
-A modern full-stack GraphQL service built with **Go**, **Hono**, **MySQL**, and **Docker**.
+A high-performance GraphQL API service built with **Go**, **gqlgen**, **MySQL**, and **Docker** with DataLoader optimization for efficient data fetching.
 
 ## 🏗️ Architecture
 
-This service provides both GraphQL and REST API endpoints with a complete CRUD interface for user management.
+This service provides a GraphQL API with optimized data loading patterns using DataLoader to prevent N+1 queries.
 
 **Tech Stack:**
 - **Backend:** Go with gqlgen (GraphQL server)
-- **Frontend:** TypeScript with Hono framework
-- **Database:** MySQL 8.0
+- **Database:** MySQL 8.0 
+- **Optimization:** DataLoader for batched queries
 - **Infrastructure:** Docker & Docker Compose
+- **Migration:** Custom migration system
 
 ```
-graphql-service/
-├── backend/            # Go GraphQL API Server
-│   ├── graph/         # Generated GraphQL resolvers
-│   ├── models/        # Data models & repository layer
-│   ├── database/      # Database connection & config
-│   ├── schema/        # GraphQL schema definitions
-│   ├── main.go        # Application entrypoint
-│   └── Dockerfile     # Backend container config
-├── frontend/          # Hono Web Application
-│   ├── src/           # TypeScript source code
-│   ├── public/        # Static assets
-│   └── Dockerfile     # Frontend container config
-├── database/          # Database setup
-│   └── init.sql       # Schema & seed data
-└── docker-compose.yml # Multi-service orchestration
+graphql-service-architecture/
+├── cmd/               # Command line tools
+│   └── migrate/       # Database migration tool
+├── database/          # Database connection & config
+├── graph/             # Generated GraphQL resolvers & schema
+├── migrations/        # Database migration files
+├── models/            # Data models & repository layer
+│   └── loaders/       # DataLoader implementations
+├── schema/            # GraphQL schema definitions
+├── main.go            # Application entrypoint
+├── docker-compose.yml # Multi-service orchestration
+└── Makefile          # Development commands
 ```
 
 ## ✨ Features
 
 ### GraphQL API Endpoints
-| Operation | Query/Mutation | Description |
-|-----------|---------------|-------------|
-| `users` | Query | Fetch all users |
-| `user(id: ID!)` | Query | Fetch user by ID |
+| Operation | Type | Description |
+|-----------|------|-------------|
+| `users` | Query | Fetch all users with their posts |
+| `user(id: ID!)` | Query | Fetch user by ID with posts |
+| `posts` | Query | Fetch all posts |
+| `post(id: ID!)` | Query | Fetch post by ID |
 | `createUser(input: CreateUserInput!)` | Mutation | Create new user |
 | `updateUser(id: ID!, input: UpdateUserInput!)` | Mutation | Update existing user |
 | `deleteUser(id: ID!)` | Mutation | Delete user |
 
-### REST API Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/users` | Get all users |
-| `GET` | `/api/users/:id` | Get user by ID |
-| `POST` | `/api/users` | Create new user |
-| `PUT` | `/api/users/:id` | Update user |
-| `DELETE` | `/api/users/:id` | Delete user |
+### Key Features
+- **DataLoader Integration**: Prevents N+1 queries when fetching related data
+- **User-Post Relations**: Users can have multiple posts with optimized loading
+- **Database Migrations**: Version-controlled schema management
+- **CORS Support**: Cross-origin requests enabled
+- **Docker Development**: Containerized development environment
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Docker 20.0+
 - Docker Compose 2.0+
+- Go 1.23+ (for local development)
 
 ### Launch Services
 
 ```bash
 # Clone and navigate to project
-cd graphql-service
+cd graphql-service-architecture
 
-# Start all services with Docker Compose
-docker-compose up --build
+# Setup and start all services
+make setup
+
+# Or manually:
+docker-compose up --build -d
+make migrate-up
 ```
 
 ### 🌐 Access Points
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Frontend UI** | http://localhost:3000 | Web interface |
 | **GraphQL Playground** | http://localhost:8080 | Interactive GraphQL IDE |
 | **GraphQL API** | http://localhost:8080/query | GraphQL endpoint |
 | **MySQL Database** | localhost:3306 | Database connection |
@@ -88,14 +90,39 @@ CREATE TABLE users (
 );
 ```
 
-**Sample Data:**
-| ID | Name | Email |
-|----|------|-------|
-| 1 | John Doe | john@example.com |
-| 2 | Jane Smith | jane@example.com |
-| 3 | Bob Johnson | bob@example.com |
+### Posts Table
+```sql
+CREATE TABLE posts (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    title       VARCHAR(255) NOT NULL,
+    content     TEXT,
+    user_id     INT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
 
 ## 📋 GraphQL Examples
+
+### Fetch Users with Posts (DataLoader Optimized)
+```graphql
+query GetUsersWithPosts {
+  users {
+    id
+    name
+    email
+    posts {
+      id
+      title
+      content
+      createdAt
+    }
+    createdAt
+    updatedAt
+  }
+}
+```
 
 ### Create User
 ```graphql
@@ -107,19 +134,10 @@ mutation CreateUser {
     id
     name
     email
-    createdAt
-    updatedAt
-  }
-}
-```
-
-### Fetch All Users
-```graphql
-query GetUsers {
-  users {
-    id
-    name
-    email
+    posts {
+      id
+      title
+    }
     createdAt
     updatedAt
   }
@@ -136,6 +154,10 @@ mutation UpdateUser {
     id
     name
     email
+    posts {
+      id
+      title
+    }
     updatedAt
   }
 }
@@ -150,57 +172,59 @@ mutation DeleteUser {
 
 ## ⚙️ Environment Variables
 
-### Backend (Go)
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DB_HOST` | `localhost` | MySQL host |
+| `DB_HOST` | `mysql` | MySQL host (container name in Docker) |
 | `DB_PORT` | `3306` | MySQL port |
 | `DB_USER` | `root` | MySQL username |
 | `DB_PASSWORD` | `password` | MySQL password |
 | `DB_NAME` | `graphql_db` | Database name |
-| `PORT` | `8080` | Server port |
-
-### Frontend (Hono)
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GRAPHQL_ENDPOINT` | `http://localhost:8080/query` | GraphQL API endpoint |
-| `PORT` | `3000` | Server port |
+| `PORT` | `8080` | GraphQL server port |
 
 ## 🛠️ Development
 
-### Backend Development
+### Local Development
 ```bash
-cd backend
-
-# Run backend locally
+# Run GraphQL server locally
 go run main.go
 
-# Build backend
+# Build the application
 go build -o main .
 
 # Run tests
 go test ./...
 ```
 
-### Frontend Development
+### GraphQL Schema Generation
 ```bash
-cd frontend
-npm install
-npm run dev
+# Regenerate GraphQL resolvers and types
+make gen
+# or directly:
+gqlgen generate
 ```
 
-### Regenerate GraphQL Schema
+### Database Management
 ```bash
-cd backend
-make gen
+# Create new migration
+make migrate-create name=add_posts_table
+
+# Run migrations
+make migrate-up
+
+# Rollback migrations
+make migrate-down
+
+# Check migration status
+make migrate-status
 ```
 
 ### Docker Development
 ```bash
-cd backend
-
 # Start all services
 make dev
+
+# Setup everything (build + migrate)
+make setup
 
 # Stop services
 make down
@@ -208,7 +232,10 @@ make down
 # View logs
 make logs
 
-# Clean up
+# Access MySQL directly
+make db
+
+# Clean up everything
 make clean
 ```
 
@@ -219,43 +246,49 @@ make clean
 **MySQL Connection Error**
 ```bash
 # Check if services are running
-docker-compose ps
+make ps
 
 # Check MySQL logs
-docker-compose logs mysql
+make log-mysql
+
+# Verify database connectivity
+make db
 ```
 
 **GraphQL API Connection Error**
 ```bash
 # Check backend service status
-docker-compose logs backend
+make log-backend
 
-# Verify GraphQL endpoint
-curl http://localhost:8080/query
+# Test GraphQL endpoint
+curl -X POST http://localhost:8080/query \
+  -H "Content-Type: application/json" \
+  -d '{"query":"query{users{id name}}"}'
 ```
 
-**Frontend Display Issues**
+**DataLoader Issues**
 ```bash
-# Check frontend service logs
-docker-compose logs frontend
+# Check for N+1 query problems in logs
+make log-query
 
-# Verify frontend is accessible
-curl http://localhost:3000
+# Verify DataLoader middleware is working
+make log-backend | grep -i "loader"
 ```
 
 ### Useful Commands
 ```bash
 # Restart all services
-docker-compose restart
+make reset
 
-# Rebuild and restart
+# Rebuild containers
 docker-compose up --build --force-recreate
 
-# View logs for specific service
-docker-compose logs -f [service-name]
+# View specific service logs
+make log-mysql    # MySQL logs
+make log-backend  # Backend logs
 
-# Clean up containers and volumes
-docker-compose down -v
+# Clean up everything
+make clean
 ```
 
 ## 📄 License

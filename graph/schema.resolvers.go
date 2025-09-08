@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"graphql-backend/graph/model"
+	"graphql-backend/models/loaders"
 	"strconv"
 	"time"
 )
@@ -137,7 +138,8 @@ func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Pos
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	posts, err := r.postRepo.GetPostsByUserID(userID)
+	thunk := loaders.FromContext(ctx).PostsByUserID.Load(ctx, userID)
+	posts, err := thunk()
 	if err != nil {
 		return nil, err
 	}

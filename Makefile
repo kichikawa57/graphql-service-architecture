@@ -30,12 +30,21 @@ ps:
 logs:
 	docker-compose logs -f
 
+log-mysql:
+	docker-compose logs -f mysql
+
+log-backend:
+	docker-compose logs -f backend
+
+log-query:
+	docker-compose exec mysql bash -lc "cat /var/lib/mysql/query.log"
+
 gen:
 	gqlgen generate
 
 # Database commands
 db:
-	docker-compose exec mysql mysql -u root -p graphql_db
+	docker-compose exec mysql mysql -u root -ppassword graphql_db
 
 # Migration commands
 migrate-up:
