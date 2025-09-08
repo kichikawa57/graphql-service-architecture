@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -370,12 +371,19 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema/schema.graphql", Input: `type User {
+	{Name: "../schema/schema.graphql", Input: `scalar UserID
+scalar Date
+
+interface Node {
   id: ID!
+}
+
+type User {
+  id: UserID!
   name: String!
   email: String!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: Date!
+  updatedAt: Date!
   posts: [Post!]!
 }
 
@@ -383,8 +391,8 @@ type Post {
   id: ID!
   title: String!
   content: String!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: Date!
+  updatedAt: Date!
 }
 
 type Query {
@@ -891,9 +899,9 @@ func (ec *executionContext) _Post_createdAt(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDate2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -903,7 +911,7 @@ func (ec *executionContext) fieldContext_Post_createdAt(_ context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Date does not have child fields")
 		},
 	}
 	return fc, nil
@@ -935,9 +943,9 @@ func (ec *executionContext) _Post_updatedAt(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDate2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -947,7 +955,7 @@ func (ec *executionContext) fieldContext_Post_updatedAt(_ context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Date does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1354,9 +1362,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.UserID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUserID2graphqlᚑbackendᚋgraphᚋmodelᚐUserID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1366,7 +1374,7 @@ func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphq
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type UserID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1486,9 +1494,9 @@ func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDate2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1498,7 +1506,7 @@ func (ec *executionContext) fieldContext_User_createdAt(_ context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Date does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1530,9 +1538,9 @@ func (ec *executionContext) _User_updatedAt(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDate2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1542,7 +1550,7 @@ func (ec *executionContext) fieldContext_User_updatedAt(_ context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Date does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3627,6 +3635,15 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj model.Node) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -4336,6 +4353,22 @@ func (ec *executionContext) unmarshalNCreateUserInput2graphqlᚑbackendᚋgraph�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNDate2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDate2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4483,6 +4516,16 @@ func (ec *executionContext) marshalNUser2ᚖgraphqlᚑbackendᚋgraphᚋmodelᚐ
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserID2graphqlᚑbackendᚋgraphᚋmodelᚐUserID(ctx context.Context, v any) (model.UserID, error) {
+	var res model.UserID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUserID2graphqlᚑbackendᚋgraphᚋmodelᚐUserID(ctx context.Context, sel ast.SelectionSet, v model.UserID) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

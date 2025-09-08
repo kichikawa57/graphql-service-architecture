@@ -35,4 +35,8 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
 
+  Date:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+
 skip_mod_tidy: true

@@ -2,6 +2,15 @@
 
 package model
 
+import (
+	"time"
+)
+
+type Node interface {
+	IsNode()
+	GetID() string
+}
+
 type CreateUserInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
@@ -11,11 +20,11 @@ type Mutation struct {
 }
 
 type Post struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type Query struct {
@@ -27,10 +36,10 @@ type UpdateUserInput struct {
 }
 
 type User struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Email     string  `json:"email"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt string  `json:"updatedAt"`
-	Posts     []*Post `json:"posts"`
+	ID        UserID    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Posts     []*Post   `json:"posts"`
 }

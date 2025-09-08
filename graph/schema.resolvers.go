@@ -21,11 +21,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	}
 
 	return &model.User{
-		ID:        fmt.Sprintf("%d", user.ID),
+		ID:        model.NewUserID(user.ID),
 		Name:      user.Name,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
@@ -42,11 +42,11 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input mode
 	}
 
 	return &model.User{
-		ID:        fmt.Sprintf("%d", user.ID),
+		ID:        model.NewUserID(user.ID),
 		Name:      user.Name,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
@@ -75,11 +75,11 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	var result []*model.User
 	for _, user := range users {
 		result = append(result, &model.User{
-			ID:        fmt.Sprintf("%d", user.ID),
+			ID:        model.NewUserID(user.ID),
 			Name:      user.Name,
 			Email:     user.Email,
-			CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 
@@ -99,11 +99,11 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}
 
 	return &model.User{
-		ID:        fmt.Sprintf("%d", user.ID),
+		ID:        model.NewUserID(user.ID),
 		Name:      user.Name,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
@@ -114,8 +114,8 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
 			ID:        "1",
 			Title:     "Post 1",
 			Content:   "Content 1",
-			CreatedAt: time.Now().Format("2006-01-02T15:04:05Z"),
-			UpdatedAt: time.Now().Format("2006-01-02T15:04:05Z"),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		},
 	}, nil
 }
@@ -126,17 +126,14 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error
 		ID:        "1",
 		Title:     "Post 1",
 		Content:   "Content 1",
-		CreatedAt: time.Now().Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: time.Now().Format("2006-01-02T15:04:05Z"),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}, nil
 }
 
 // Posts is the resolver for the posts field.
 func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Post, error) {
-	userID, err := strconv.Atoi(obj.ID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid user ID: %w", err)
-	}
+	userID := obj.ID.Int()
 
 	thunk := loaders.FromContext(ctx).PostsByUserID.Load(ctx, userID)
 	posts, err := thunk()
@@ -150,8 +147,8 @@ func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Pos
 			ID:        fmt.Sprintf("%d", post.ID),
 			Title:     post.Title,
 			Content:   post.Content,
-			CreatedAt: post.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt: post.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt: post.CreatedAt,
+			UpdatedAt: post.UpdatedAt,
 		})
 	}
 
