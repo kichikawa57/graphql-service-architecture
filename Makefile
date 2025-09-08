@@ -7,6 +7,12 @@ build:
 dev:
 	docker-compose up -d
 
+setup:
+	make build
+	docker-compose up -d
+	make gen
+	make migrate-up
+
 down:
 	docker-compose down
 

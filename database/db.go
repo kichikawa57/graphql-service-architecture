@@ -24,8 +24,6 @@ func NewDB() (*DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	fmt.Println("dsn ==========>", dsn)
-
 	maxRetries := 5
 	retryDelay := time.Second * 2
 

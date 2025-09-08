@@ -14,7 +14,6 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	// Test comment for hot reload - updated again!
 	user, err := r.userRepo.Create(input.Name, input.Email)
 	if err != nil {
 		return nil, err
@@ -133,7 +132,6 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error
 
 // Posts is the resolver for the posts field.
 func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Post, error) {
-
 	userID, err := strconv.Atoi(obj.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID: %w", err)
